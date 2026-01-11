@@ -1,0 +1,1303 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mooca Pizza Meter</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #000; color: #fff; margin: 0; padding: 0; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+    h1 { font-size: 2em; text-align: center; margin: 20px 0; color: #ff6347; }
+    .subtitle { text-align: center; font-size: 1.1em; font-weight: bold; margin-bottom: 20px; color: #fff; }
+    
+    /* Ticker com verde neon */
+    .ticker { background: #111; padding: 10px; overflow: hidden; white-space: nowrap; margin-bottom: 30px; }
+    .ticker-content { display: inline-block; animation: scroll 45s linear infinite; color: #39FF14; font-size: 1.3em; text-shadow: 0 0 8px #39FF14; }
+    .ticker-item { display: inline-block; margin-right: 80px; }
+    @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    
+    /* Títulos de seção - usado para ambos */
+    .section-title { 
+      text-align: center; 
+      font-size: 1.8em; 
+      margin: 50px 0 30px 0; 
+      color: #ff6347; 
+      font-weight: bold; 
+    }
+    
+    /* Carousel de banners (apoiadores) */
+    .banners-carousel { width: 100%; overflow: hidden; background: #111; border-radius: 12px; padding: 15px 0; margin-bottom: 40px; }
+    .banners-inner { display: flex; animation: scrollHorizontal 15s linear infinite; gap: 25px; padding: 0 20px; }
+    .banners-inner:hover { animation-play-state: paused; }
+    .banner { min-width: 220px; max-width: 220px; padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: #1a1a2e; border-radius: 12px; transition: all 0.5s ease; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.6); }
+    .banner img { max-width: 150px; max-height: 70px; margin-bottom: 10px; object-fit: contain; }
+    .banner p { font-size: 0.85em; color: #ddd; line-height: 1.3; margin: 0; }
+    .banner:hover, .banner.active { transform: scale(1.1); box-shadow: 0 0 25px #39FF14; border: 2px solid #39FF14; z-index: 5; }
+    
+    @keyframes scrollHorizontal { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    
+    /* Carousel de promoções */
+    .promotions-carousel { width: 100%; overflow: hidden; background: #111; border-radius: 12px; padding: 15px 0; margin-bottom: 40px; }
+    .promotions-inner { display: flex; animation: scrollHorizontal 15s linear infinite; gap: 25px; padding: 0 20px; }
+    .promotions-inner:hover { animation-play-state: paused; }
+    .promotion { 
+      min-width: 220px; max-width: 220px; padding: 12px; 
+      display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; 
+      background: #666666; border-radius: 12px; transition: all 0.5s ease; cursor: pointer; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.6); 
+    }
+    .promotion img { max-width: 150px; max-height: 70px; margin-bottom: 10px; object-fit: contain; border-radius: 8px; }
+    .promotion p { 
+      font-size: 0.85em; color: #ffffff !important; line-height: 1.35; margin: 5px 0; 
+      text-shadow: 1px 1px 5px rgba(0,0,0,1); font-weight: 900; 
+    }
+    .promotion a, .promotion a:link, .promotion a:visited, .promotion a:hover, .promotion a:active { 
+      color: #ffffff !important; text-decoration: none !important; 
+    }
+    .promotion:hover p { color: #39FF14 !important; text-shadow: 0 0 12px #39FF14; }
+    .promotion:hover, .promotion.active { 
+      transform: scale(1.12); box-shadow: 0 0 40px #39FF14; border: 3px solid #39FF14; z-index: 5; 
+    }
+    
+    /* Grid e cards */
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; }
+    @media (max-width: 1200px) { .grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+    
+    .pizzaria-card { background: #1a1a2e; border-radius: 12px; padding: 25px; box-shadow: 0 4px 15px rgba(0,0,0,0.6); cursor: pointer; transition: all 0.3s; border: 1px solid #333; }
+    .pizzaria-card:hover { box-shadow: 0 8px 25px rgba(255,99,71,0.4); border-color: #555; }
+    .icone { font-size: 2.5em; margin-bottom: 15px; text-align: center; }
+    .nome { font-size: 1.6em; font-weight: bold; text-transform: uppercase; margin: 0 0 8px 0; color: #fff; text-align: center; }
+    .avaliacao { font-size: 1.3em; font-weight: bold; color: #ffd700; text-align: center; margin-bottom: 15px; }
+    .status { padding: 8px 15px; border-radius: 30px; font-size: 1.1em; display: inline-block; margin-bottom: 15px; font-weight: bold; }
+    .fechado { background: #6c757d; color: #fff; }
+    .aberto { background: #28a745; color: #fff; }
+    .distance { color: #aaa; font-size: 1.1em; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .chart-label { font-size: 1em; color: #fff; margin: 20px 0 10px; text-transform: uppercase; text-align: center; }
+    .chart { height: 120px; background: #16213e; border-radius: 8px; position: relative; overflow: hidden; margin-bottom: 15px; }
+    .bars { display: flex; height: 100%; align-items: flex-end; justify-content: space-around; padding: 0 15px; }
+    .bar { width: 12%; background: #0d47a1; border-radius: 4px 4px 0 0; opacity: 0.9; transform: scaleY(0); transform-origin: bottom; animation: grow 1.5s ease-out forwards; }
+    @keyframes grow { to { transform: scaleY(1); } }
+
+    @keyframes pulseRed {
+      0% { transform: scaleY(1); box-shadow: 0 0 10px #ff0000; }
+      50% { transform: scaleY(1.25); box-shadow: 0 0 30px #ff0000; }
+      100% { transform: scaleY(1); box-shadow: 0 0 10px #ff0000; }
+    }
+    .bar.current-hour {
+      background: #ff0000 !important;
+      animation: pulseRed 2s infinite ease-in-out;
+      z-index: 10;
+    }
+
+    .times { display: flex; justify-content: space-between; font-size: 0.9em; color: #aaa; margin-top: 5px; padding: 0 10px; }
+    .pedidos-bar { background: linear-gradient(90deg, #dc3545, #ff4500); color: #fff; padding: 10px; border-radius: 8px; font-size: 1.1em; text-align: center; margin-top: 15px; font-weight: bold; cursor: pointer; }
+    .pedidos-bar:hover { opacity: 0.9; }
+    
+    footer { text-align: center; margin: 50px 0; font-size: 0.9em; color: #666; }
+  </style>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const horaAtual = new Date().getHours();
+      const statusElements = document.querySelectorAll('.status');
+      statusElements.forEach(element => {
+        if (horaAtual >= 18 || horaAtual < 6) {
+          element.textContent = 'ABERTO';
+          element.classList.remove('fechado');
+          element.classList.add('aberto');
+        } else {
+          element.textContent = 'FECHADO';
+          element.classList.remove('aberto');
+          element.classList.add('fechado');
+        }
+      });
+
+      const carousel = document.querySelector('.banners-carousel');
+      if (carousel) {
+        const banners = document.querySelectorAll('.banner');
+        const bannerWidth = banners[0]?.offsetWidth + 25 || 245;
+        function updateActive() {
+          const rect = carousel.getBoundingClientRect();
+          const center = rect.left + rect.width / 2;
+          banners.forEach(banner => {
+            const bannerRect = banner.getBoundingClientRect();
+            const bannerCenter = bannerRect.left + bannerRect.width / 2;
+            if (Math.abs(bannerCenter - center) < bannerWidth / 2) {
+              banner.classList.add('active');
+            } else {
+              banner.classList.remove('active');
+            }
+          });
+        }
+        window.addEventListener('resize', updateActive);
+        setInterval(updateActive, 100);
+      }
+
+      const promotionsCarousel = document.querySelector('.promotions-carousel');
+      if (promotionsCarousel) {
+        const promotions = document.querySelectorAll('.promotion');
+        const promotionWidth = promotions[0]?.offsetWidth + 25 || 245;
+        function updatePromotionActive() {
+          const rect = promotionsCarousel.getBoundingClientRect();
+          const center = rect.left + rect.width / 2;
+          promotions.forEach(promotion => {
+            const promotionRect = promotion.getBoundingClientRect();
+            const promotionCenter = promotionRect.left + promotionRect.width / 2;
+            if (Math.abs(promotionCenter - center) < promotionWidth / 2) {
+              promotion.classList.add('active');
+            } else {
+              promotion.classList.remove('active');
+            }
+          });
+        }
+        window.addEventListener('resize', updatePromotionActive);
+        setInterval(updatePromotionActive, 100);
+      }
+
+      const currentHour = new Date().getHours();
+      const barMap = [12, 13.5, 15, 16.5, 18, 19.5, 21, 22.5];
+      document.querySelectorAll('.bars').forEach(barsContainer => {
+        const bars = barsContainer.querySelectorAll('.bar');
+        bars.forEach((bar, index) => {
+          const barHour = barMap[index];
+          if (currentHour >= barHour - 0.75 && currentHour < barHour + 0.75) {
+            bar.classList.add('current-hour');
+          }
+        });
+      });
+
+      fetch('https://api.open-meteo.com/v1/forecast?latitude=-23.57&longitude=-46.59&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=America%2FSao_Paulo')
+        .then(response => response.json())
+        .then(data => {
+          const today = data.daily;
+          const tempMin = Math.round(today.temperature_2m_min[0]);
+          const tempMax = Math.round(today.temperature_2m_max[0]);
+          const chuvaProb = today.precipitation_probability_max[0];
+          let desc = 'parcialmente nublado';
+          if (chuvaProb > 60) desc = 'com chuva';
+          else if (chuvaProb > 30) desc = 'com possibilidade de chuva';
+          else desc = 'ensolarado';
+          document.getElementById('tempo-ticker').textContent = `• Previsão do tempo Mooca hoje: ${desc}, ${tempMin}-${tempMax}°C`;
+        })
+        .catch(() => {
+          document.getElementById('tempo-ticker').textContent = '• Previsão do tempo Mooca: indisponível no momento';
+        });
+    });
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>MOOCA PIZZA METER</h1>
+    <p class="subtitle"><strong>Veja em tempo Real o Movimento de 40+ Pizzarias do Bairro mais Italiano de São Paulo (Avaliação 4.0+ no Google)</strong></p>
+    
+    <h2 class="section-title">NOSSOS APOIADORES</h2>
+    
+    <div class="banners-carousel">
+      <div class="banners-inner">
+        <!-- Banner Magister -->
+        <a href="http://magistermarcas.com.br/" target="_blank" class="banner">
+          <img src="logo-magister.png" alt="Magister Marcas e Patentes">
+          <p>A MAGISTER Marcas e Patentes</p>
+        </a>
+
+        <!-- Banner Rosélis -->
+        <a href="https://roselis.com.br/" target="_blank" class="banner">
+          <img src="logo-roselis.png" alt="Farmácia Rosélis">
+          <p>Farmácia de Manipulação Rosélis.</p>
+        </a>
+
+        <!-- Banner Abade Advogados -->
+        <a href="https://abadeadvogados.com.br/" target="_blank" class="banner">
+          <img src="logo-abade.png" alt="Abade Sociedade de Advogados">
+          <p>Abade Advogados.</p>
+        </a>
+
+        <!-- Duplicados para rolagem infinita -->
+        <a href="https://termicar.com.br/" target="_blank" class="banner">
+          <img src="logo-termicar.png" alt="Termicar Ind. auto Peças">
+          <p>A Ind. Auto Peças</p>
+        </a>
+
+        <a href="https://roselis.com.br/" target="_blank" class="banner">
+          <img src="logo-tecmaq.png" alt="Seladoras a Vácuo">
+          <p>Seladoras a Vácuo</p>
+        </a>
+
+        <a href="https://portaldamooca.com.br/" target="_blank" class="banner">
+          <img src="logo-portal-da-mooca.png" alt="Portal da Mooca">
+          <p>Portal da Mooca.</p>
+        </a>
+      </div>
+    </div>
+
+    <h2 class="section-title">PROMOÇÕES</h2>
+    
+    <div class="promotions-carousel">
+      <div class="promotions-inner">
+        <a href="https://app.cardapioweb.com/pizzaria_tato_marcucci" target="_blank" class="promotion">
+          <img src="CupomdedescontoTato.png" alt="Cupom 20% OFF - Tato Marcucci">
+          <p>20% OFF Todas as Segundas Feiras na Tato Marcucci </p>
+        </a>
+
+        <a href="https://app.cardapioweb.com/pizzaria_tato_marcucci" target="_blank" class="promotion">
+          <img src="CupomdedescontoTato.png" alt="Cupom 20% OFF - Tato Marcucci">
+          <p>Terça Feira Premiada Tato Marcucci(Cupom de 20% do valor gasto, utilize o Cupom até o Domingo Subsequente)</p>
+        </a>
+      </div>
+    </div>
+
+    <div class="ticker">
+      <div class="ticker-content">
+        <span class="ticker-item" id="tempo-ticker">• Previsão do tempo Mooca hoje: carregando...</span>
+        <span class="ticker-item">• Trânsito na Mooca agora: fluidez normal (Radial Leste, Paes de Barros) – consulte CET ou Waze para detalhes ao vivo</span>
+        <span class="ticker-item">• Notícias ágeis da Mooca: siga @portaldamooca e @jornaldamooca no Instagram</span>
+        <span class="ticker-item">• Configure alertas "Mooca" no Google Notícias para atualizações automáticas</span>
+        <span class="ticker-item">• Status atualizado automaticamente: após 18h mostra "ABERTO"!</span>
+        <span class="ticker-item">• Tradição Italiana: Mooca é a Capital da Pizza em SP</span>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Parte 1 – Pizzarias 1 a 21 (reordenadas) -->
+
+      <!-- 1. La Braciera Pizza Napoletana (4.9 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=La+Braciera+Pizza+Napoletana+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">La Braciera Pizza Napoletana</div>
+        <div class="avaliacao">4.9 ★</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~1.2 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:30%;"></div>
+            <div class="bar" style="height:50%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:100%;"></div>
+            <div class="bar" style="height:95%;"></div>
+            <div class="bar" style="height:80%;"></div>
+            <div class="bar" style="height:60%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://labracierapizza.com.br/', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 2. Rainha da Mooca (4.9 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Rainha+da+Mooca+Pizzaria+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Rainha da Mooca</div>
+        <div class="avaliacao">4.9 ★</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.6 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:20%;"></div>
+            <div class="bar" style="height:35%;"></div>
+            <div class="bar" style="height:50%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:100%;"></div>
+            <div class="bar" style="height:95%;"></div>
+            <div class="bar" style="height:80%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.pizzariarainhadamooca.com.br/', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 3. Forneria Mooca (4.8 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Forneria+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Forneria Mooca</div>
+        <div class="avaliacao">4.8 ★ (~165 avaliações)</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.4 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:30%;"></div>
+            <div class="bar" style="height:45%;"></div>
+            <div class="bar" style="height:65%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:95%;"></div>
+            <div class="bar" style="height:80%;"></div>
+            <div class="bar" style="height:60%;"></div>
+            <div class="bar" style="height:40%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/mooca-sp/forneria-mooca-rua-da-mooca', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 4. Pizzaria Nativa Mooca (4.8 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+Nativa+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Pizzaria Nativa Mooca</div>
+        <div class="avaliacao">4.8 ★ (~400 avaliações)</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.7 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:15%;"></div>
+            <div class="bar" style="height:30%;"></div>
+            <div class="bar" style="height:50%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:100%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:70%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.pizzarianativamooca.com.br/', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 5. A Pizza da Mooca (4.7 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=A+Pizza+da+Mooca+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">A Pizza da Mooca</div>
+        <div class="avaliacao">4.7 ★ (~1.200 avaliações)</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.8 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:25%;"></div>
+            <div class="bar" style="height:40%;"></div>
+            <div class="bar" style="height:60%;"></div>
+            <div class="bar" style="height:80%;"></div>
+            <div class="bar" style="height:95%;"></div>
+            <div class="bar" style="height:100%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:65%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.apizzadamooca.com.br/', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 6. Piano Piano Pizzaria (4.7 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Piano+Piano+Pizzaria+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Piano Piano Pizzaria</div>
+        <div class="avaliacao">4.7 ★</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.9 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:25%;"></div>
+            <div class="bar" style="height:40%;"></div>
+            <div class="bar" style="height:60%;"></div>
+            <div class="bar" style="height:80%;"></div>
+            <div class="bar" style="height:95%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:50%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/piano-piano-pizzaria-mooca', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 7. Guigui Pizzas (4.7 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Guigui+Pizzas+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Guigui Pizzas</div>
+        <div class="avaliacao">4.7 ★</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.8 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:20%;"></div>
+            <div class="bar" style="height:35%;"></div>
+            <div class="bar" style="height:55%;"></div>
+            <div class="bar" style="height:75%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:100%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:65%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/guigui-pizzas-mooca', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 8. Tato Marcucci (4.6 ★) – ADICIONADA AQUI -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Tato+Marcucci+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Tato Marcucci</div>
+        <div class="avaliacao">4.6 ★ (~300 avaliações)</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.5 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:15%;"></div>
+            <div class="bar" style="height:30%;"></div>
+            <div class="bar" style="height:50%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:95%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:65%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://app.cardapioweb.com/pizzaria_tato_marcucci', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 9. Pizzaria do Angelo (4.6 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+do+Angelo+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Pizzaria do Angelo</div>
+        <div class="avaliacao">4.6 ★ (~1.600 avaliações)</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.3 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:35%;"></div>
+            <div class="bar" style="height:50%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:100%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:50%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/mooca-sp/pizzaria-do-angelo-rua-da-mooca', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 10. SP Capital da Pizza (4.6 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=SP+Capital+da+Pizza+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">SP Capital da Pizza</div>
+        <div class="avaliacao">4.6 ★ (~800 avaliações)</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~1.0 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:25%;"></div>
+            <div class="bar" style="height:40%;"></div>
+            <div class="bar" style="height:60%;"></div>
+            <div class="bar" style="height:80%;"></div>
+            <div class="bar" style="height:95%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:50%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://spcapitaldapizza.com.br/', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 11. Seo Basilico - Mooca (4.6 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Seo+Basilico+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Seo Basilico - Mooca</div>
+        <div class="avaliacao">4.6 ★ (~550 avaliações)</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.5 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:30%;"></div>
+            <div class="bar" style="height:45%;"></div>
+            <div class="bar" style="height:65%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:95%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:50%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/seo-basilico-mooca', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 12. Pizza Onesttà (4.5 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizza+Onestt%C3%A0+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Pizza Onesttà</div>
+        <div class="avaliacao">4.5 ★</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.8 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:20%;"></div>
+            <div class="bar" style="height:35%;"></div>
+            <div class="bar" style="height:55%;"></div>
+            <div class="bar" style="height:75%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:55%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/pizzaria-onestta-mooca/e642faf6-4c8e-4d92-9cd4-dc84ebd7faa4', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 13. Punto e Basta Mooca (4.5 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Punto+e+Basta+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Punto e Basta Mooca</div>
+        <div class="avaliacao">4.5 ★</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.7 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:25%;"></div>
+            <div class="bar" style="height:40%;"></div>
+            <div class="bar" style="height:60%;"></div>
+            <div class="bar" style="height:80%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:55%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/punto-e-pasta-mooca-cantina-mooca', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 14. Pizzaria Zio Pasquale (4.5 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+Zio+Pasquale+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Pizzaria Zio Pasquale</div>
+        <div class="avaliacao">4.5 ★</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.6 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:30%;"></div>
+            <div class="bar" style="height:45%;"></div>
+            <div class="bar" style="height:60%;"></div>
+            <div class="bar" style="height:75%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:95%;"></div>
+            <div class="bar" style="height:80%;"></div>
+            <div class="bar" style="height:60%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/mooca-sp/pizzaria-zio-pasquale', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 15. Pizzaria São Pedro (4.5 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+S%C3%A3o+Pedro+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Pizzaria São Pedro</div>
+        <div class="avaliacao">4.5 ★ (~3.900 avaliações)</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.6 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:40%;"></div>
+            <div class="bar" style="height:55%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:95%;"></div>
+            <div class="bar" style="height:100%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:75%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/mooca-sp/pizzaria-sao-pedro-rua-do-oratorio', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 16. Pizzaria Nova Juventus (4.5 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+Nova+Juventus+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Pizzaria Nova Juventus</div>
+        <div class="avaliacao">4.5 ★ (~150 avaliações)</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.7 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:20%;"></div>
+            <div class="bar" style="height:35%;"></div>
+            <div class="bar" style="height:50%;"></div>
+            <div class="bar" style="height:65%;"></div>
+            <div class="bar" style="height:80%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:70%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://pizzarianovajuventus.com.br/', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 17. Pizzaria Dom Lau (4.5 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+Dom+Lau+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Pizzaria Dom Lau</div>
+        <div class="avaliacao">4.5 ★</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.7 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:25%;"></div>
+            <div class="bar" style="height:40%;"></div>
+            <div class="bar" style="height:60%;"></div>
+            <div class="bar" style="height:80%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:55%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/pizzaria-dom-lau-mooca', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 18. Pizza Brava - Bravíssima (4.5 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizza+Brava+Brav%C3%ADssima+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Pizza Brava - Bravíssima</div>
+        <div class="avaliacao">4.5 ★</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.8 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:20%;"></div>
+            <div class="bar" style="height:35%;"></div>
+            <div class="bar" style="height:55%;"></div>
+            <div class="bar" style="height:75%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:55%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/pizza-brava-bravissima-mooca', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 19. Ritorna Pizzaria (4.5 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Ritorna+Pizzaria+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Ritorna Pizzaria</div>
+        <div class="avaliacao">4.5 ★</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.6 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:25%;"></div>
+            <div class="bar" style="height:40%;"></div>
+            <div class="bar" style="height:60%;"></div>
+            <div class="bar" style="height:80%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:55%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/ritorna-pizzaria-mooca', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 20. O Glutão Pizzaria (4.5 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=O+Glut%C3%A3o+Pizzaria+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">O Glutão Pizzaria</div>
+        <div class="avaliacao">4.5 ★</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.6 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:30%;"></div>
+            <div class="bar" style="height:45%;"></div>
+            <div class="bar" style="height:65%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:95%;"></div>
+            <div class="bar" style="height:90%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:50%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/o-glutao-pizzaria-mooca', '_blank')">PEDIDOS</div>
+      </div>
+
+      <!-- 21. Clube da Pizza 936 (4.4 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Clube+da+Pizza+936+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone">🍕</div>
+        <div class="nome">Clube da Pizza 936</div>
+        <div class="avaliacao">4.4 ★ (~500 avaliações)</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~0.5 km <span>X 🚗</span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height:25%;"></div>
+            <div class="bar" style="height:40%;"></div>
+            <div class="bar" style="height:55%;"></div>
+            <div class="bar" style="height:70%;"></div>
+            <div class="bar" style="height:85%;"></div>
+            <div class="bar" style="height:95%;"></div>
+            <div class="bar" style="height:80%;"></div>
+            <div class="bar" style="height:60%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://clubedapizza936.wabiz.delivery/', '_blank')">PEDIDOS</div>
+      </div>
+
+   <!-- Fecha o grid da Parte 1 -->
+
+      <!-- Parte 2 – Pizzarias 22 a 42 -->
+
+        <!-- 23. Moinhos de Vento Trattoria (4.4 ★) -->
+  <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Moinhos+de+Vento+Trattoria+Mooca+S%C3%A3o+Paulo', '_blank')">
+    <div class="icone"></div>
+    <div class="nome">Moinhos de Vento Trattoria</div>
+    <div class="avaliacao">4.4 ★</div>
+    <div class="status fechado">FECHADO</div>
+    <div class="distance">~0.9 km <span>X </span></div>
+    <div class="chart-label">Análise do Popular Times</div>
+    <div class="chart">
+      <div class="bars">
+        <div class="bar" style="height: 20%;"></div>
+        <div class="bar" style="height: 35%;"></div>
+        <div class="bar" style="height: 50%;"></div>
+        <div class="bar" style="height: 65%;"></div>
+        <div class="bar" style="height: 80%;"></div>
+        <div class="bar" style="height: 85%;"></div>
+        <div class="bar" style="height: 70%;"></div>
+        <div class="bar" style="height: 55%;"></div>
+      </div>
+    </div>
+    <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+    <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/moinhos-de-vento-trattoria-mooca', '_blank')">PEDIDOS</div>
+  </div>
+
+  <!-- 24. Pizzaria Dom Carmino (4.4 ★) -->
+  <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+Dom+Carmino+Mooca+S%C3%A3o+Paulo', '_blank')">
+    <div class="icone"></div>
+    <div class="nome">Pizzaria Dom Carmino</div>
+    <div class="avaliacao">4.4 ★</div>
+    <div class="status fechado">FECHADO</div>
+    <div class="distance">~0.7 km <span>X </span></div>
+    <div class="chart-label">Análise do Popular Times</div>
+    <div class="chart">
+      <div class="bars">
+        <div class="bar" style="height: 20%;"></div>
+        <div class="bar" style="height: 35%;"></div>
+        <div class="bar" style="height: 55%;"></div>
+        <div class="bar" style="height: 70%;"></div>
+        <div class="bar" style="height: 85%;"></div>
+        <div class="bar" style="height: 90%;"></div>
+        <div class="bar" style="height: 75%;"></div>
+        <div class="bar" style="height: 60%;"></div>
+      </div>
+    </div>
+    <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+    <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/pizzaria-dom-carmino-mooca', '_blank')">PEDIDOS</div>
+  </div>
+
+  <!-- Pizzarias reordenadas por nota decrescente + desempates -->
+
+<!-- 1. Pizzaria Papa Domenico (4.3 ★) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+Papa+Domenico+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Pizzaria Papa Domenico</div>
+  <div class="avaliacao">4.3 ★</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.8 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 15%;"></div>
+      <div class="bar" style="height: 30%;"></div>
+      <div class="bar" style="height: 45%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+      <div class="bar" style="height: 75%;"></div>
+      <div class="bar" style="height: 85%;"></div>
+      <div class="bar" style="height: 80%;"></div>
+      <div class="bar" style="height: 65%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://papadomenico.ccmpedidoonline.com.br/', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 2. Pizzaria & Esfiharia Vicenza (4.3 ★) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+Vicenza+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Pizzaria & Esfiharia Vicenza</div>
+  <div class="avaliacao">4.3 ★</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.7 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 20%;"></div>
+      <div class="bar" style="height: 35%;"></div>
+      <div class="bar" style="height: 50%;"></div>
+      <div class="bar" style="height: 65%;"></div>
+      <div class="bar" style="height: 80%;"></div>
+      <div class="bar" style="height: 90%;"></div>
+      <div class="bar" style="height: 75%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/pizzaria--esfiharia-vicenza-belenzinho/170a45fc-390c-4d76-96b0-4132c79147a6', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 3. Pizzaria La Luna (4.3 ★) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+La+Luna+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Pizzaria La Luna</div>
+  <div class="avaliacao">4.3 ★</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.8 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 15%;"></div>
+      <div class="bar" style="height: 30%;"></div>
+      <div class="bar" style="height: 50%;"></div>
+      <div class="bar" style="height: 70%;"></div>
+      <div class="bar" style="height: 85%;"></div>
+      <div class="bar" style="height: 90%;"></div>
+      <div class="bar" style="height: 75%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/pizzaria-la-luna-mooca', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 4. Os Komilões Pizzaria na Mooca (4.3 ★) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Os+Komil%C3%B5es+Pizzaria+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Os Komilões Pizzaria na Mooca</div>
+  <div class="avaliacao">4.3 ★</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.9 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 20%;"></div>
+      <div class="bar" style="height: 35%;"></div>
+      <div class="bar" style="height: 55%;"></div>
+      <div class="bar" style="height: 70%;"></div>
+      <div class="bar" style="height: 85%;"></div>
+      <div class="bar" style="height: 90%;"></div>
+      <div class="bar" style="height: 75%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/os-komiloes-pizzaria-mooca', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 5. Sacada Pizzaria (4.3 ★) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Sacada+Pizzaria+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Sacada Pizzaria</div>
+  <div class="avaliacao">4.3 ★</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.7 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 15%;"></div>
+      <div class="bar" style="height: 30%;"></div>
+      <div class="bar" style="height: 45%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+      <div class="bar" style="height: 75%;"></div>
+      <div class="bar" style="height: 85%;"></div>
+      <div class="bar" style="height: 80%;"></div>
+      <div class="bar" style="height: 65%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/sacada-pizzaria-mooca', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 6. Pizzaria Sabor Aos Pedaços (4.2 ★) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+Sabor+Aos+Peda%C3%A7os+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Pizzaria Sabor Aos Pedaços</div>
+  <div class="avaliacao">4.2 ★</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~1.0 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 15%;"></div>
+      <div class="bar" style="height: 30%;"></div>
+      <div class="bar" style="height: 45%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+      <div class="bar" style="height: 75%;"></div>
+      <div class="bar" style="height: 85%;"></div>
+      <div class="bar" style="height: 80%;"></div>
+      <div class="bar" style="height: 65%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/pizzaria-sabor-aos-pedacos-mooca', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 7. Empório 167 Pizza & Bar (4.2 ★) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Emp%C3%B3rio+167+Pizza+Bar+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Empório 167 Pizza & Bar</div>
+  <div class="avaliacao">4.2 ★</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.5 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 25%;"></div>
+      <div class="bar" style="height: 40%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+      <div class="bar" style="height: 80%;"></div>
+      <div class="bar" style="height: 90%;"></div>
+      <div class="bar" style="height: 85%;"></div>
+      <div class="bar" style="height: 70%;"></div>
+      <div class="bar" style="height: 55%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.emporio167.com.br/', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 8. Pizzaria Carlini (4.1 ★ ~350 avaliações) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+Carlini+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Pizzaria Carlini</div>
+  <div class="avaliacao">4.1 ★ (~350 avaliações)</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.5 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 30%;"></div>
+      <div class="bar" style="height: 45%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+      <div class="bar" style="height: 75%;"></div>
+      <div class="bar" style="height: 85%;"></div>
+      <div class="bar" style="height: 90%;"></div>
+      <div class="bar" style="height: 80%;"></div>
+      <div class="bar" style="height: 65%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/mooca-sp/don-carlini---mooca-mooca/a9319390-87e1-4fb5-808a-b5f3cc924e2a', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 9. Bendita Maria Pizza (4.1 ★ ~200 avaliações) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Bendita+Maria+Pizza+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Bendita Maria Pizza</div>
+  <div class="avaliacao">4.1 ★ (~200 avaliações)</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.6 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 25%;"></div>
+      <div class="bar" style="height: 40%;"></div>
+      <div class="bar" style="height: 55%;"></div>
+      <div class="bar" style="height: 70%;"></div>
+      <div class="bar" style="height: 85%;"></div>
+      <div class="bar" style="height: 90%;"></div>
+      <div class="bar" style="height: 75%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/mooca-sp/pizza-por-metro-bendita-maria-mooca/5193e7cf-2ead-4c8e-ab35-22800d1daf7d', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 10. Villagio Pizzaria Mooca (4.1 ★) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Villagio+Pizzaria+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Villagio Pizzaria Mooca</div>
+  <div class="avaliacao">4.1 ★</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.9 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 20%;"></div>
+      <div class="bar" style="height: 35%;"></div>
+      <div class="bar" style="height: 50%;"></div>
+      <div class="bar" style="height: 65%;"></div>
+      <div class="bar" style="height: 80%;"></div>
+      <div class="bar" style="height: 85%;"></div>
+      <div class="bar" style="height: 70%;"></div>
+      <div class="bar" style="height: 55%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://pizzariavillagio.wabiz.delivery/', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 11. Ideal Pizzaria (4.1 ★) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Ideal+Pizzaria+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Ideal Pizzaria</div>
+  <div class="avaliacao">4.1 ★</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.8 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 20%;"></div>
+      <div class="bar" style="height: 35%;"></div>
+      <div class="bar" style="height: 50%;"></div>
+      <div class="bar" style="height: 65%;"></div>
+      <div class="bar" style="height: 80%;"></div>
+      <div class="bar" style="height: 90%;"></div>
+      <div class="bar" style="height: 75%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.cardapioideal.com.br/', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 12. Mia Pizzaria Napoletana (4.1 ★) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Mia+Pizzaria+Napoletana+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Mia Pizzaria Napoletana</div>
+  <div class="avaliacao">4.1 ★</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.7 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 25%;"></div>
+      <div class="bar" style="height: 40%;"></div>
+      <div class="bar" style="height: 55%;"></div>
+      <div class="bar" style="height: 70%;"></div>
+      <div class="bar" style="height: 85%;"></div>
+      <div class="bar" style="height: 90%;"></div>
+      <div class="bar" style="height: 75%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/mia-pizza-napoletana-vila-claudia/2ca64671-6e7a-423d-8df0-3bb2b0dcefc3', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 13. SAN GENNARO PIZZAS (4.1 ★) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=SAN+GENNARO+PIZZAS+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">SAN GENNARO PIZZAS</div>
+  <div class="avaliacao">4.1 ★</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.6 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 20%;"></div>
+      <div class="bar" style="height: 35%;"></div>
+      <div class="bar" style="height: 50%;"></div>
+      <div class="bar" style="height: 65%;"></div>
+      <div class="bar" style="height: 80%;"></div>
+      <div class="bar" style="height: 90%;"></div>
+      <div class="bar" style="height: 85%;"></div>
+      <div class="bar" style="height: 70%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ecta.com.br/SanGennaroPizzas/', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 14. Pizzaria Capannone Mooca (4.1 ★) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizzaria+Capannone+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Pizzaria Capannone Mooca</div>
+  <div class="avaliacao">4.1 ★</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.8 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 15%;"></div>
+      <div class="bar" style="height: 30%;"></div>
+      <div class="bar" style="height: 45%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+      <div class="bar" style="height: 75%;"></div>
+      <div class="bar" style="height: 85%;"></div>
+      <div class="bar" style="height: 80%;"></div>
+      <div class="bar" style="height: 65%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://pedido.anota.ai/', '_blank')">PEDIDOS</div>
+</div>
+
+<!-- 15. Babbo Giovanni (4.0 ★ ~250 avaliações) -->
+<div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Babbo+Giovanni+Mooca+S%C3%A3o+Paulo', '_blank')">
+  <div class="icone"></div>
+  <div class="nome">Babbo Giovanni</div>
+  <div class="avaliacao">4.0 ★ (~250 avaliações)</div>
+  <div class="status fechado">FECHADO</div>
+  <div class="distance">~0.4 km <span>X </span></div>
+  <div class="chart-label">Análise do Popular Times</div>
+  <div class="chart">
+    <div class="bars">
+      <div class="bar" style="height: 15%;"></div>
+      <div class="bar" style="height: 25%;"></div>
+      <div class="bar" style="height: 40%;"></div>
+      <div class="bar" style="height: 55%;"></div>
+      <div class="bar" style="height: 70%;"></div>
+      <div class="bar" style="height: 80%;"></div>
+      <div class="bar" style="height: 75%;"></div>
+      <div class="bar" style="height: 60%;"></div>
+    </div>
+  </div>
+  <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+  <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.ifood.com.br/delivery/sao-paulo-sp/babbo-giovanni--pizza-mooca/05d770f3-048f-4e26-bc74-416e0e6631c6', '_blank')">PEDIDOS</div>
+</div>
+      <!-- Última pizzaria da relação (Pizza Hut) -->
+      <!-- 32. Pizza Hut (3.9 ★) -->
+      <div class="pizzaria-card" onclick="window.open('https://www.google.com/maps/search/?api=1&query=Pizza+Hut+Mooca+S%C3%A3o+Paulo', '_blank')">
+        <div class="icone"></div>
+        <div class="nome">Pizza Hut</div>
+        <div class="avaliacao">3.9 ★</div>
+        <div class="status fechado">FECHADO</div>
+        <div class="distance">~1.0 km <span>X </span></div>
+        <div class="chart-label">Análise do Popular Times</div>
+        <div class="chart">
+          <div class="bars">
+            <div class="bar" style="height: 10%;"></div>
+            <div class="bar" style="height: 25%;"></div>
+            <div class="bar" style="height: 45%;"></div>
+            <div class="bar" style="height: 65%;"></div>
+            <div class="bar" style="height: 80%;"></div>
+            <div class="bar" style="height: 90%;"></div>
+            <div class="bar" style="height: 75%;"></div>
+            <div class="bar" style="height: 60%;"></div>
+          </div>
+        </div>
+        <div class="times"><span>12p</span><span></span><span>3p</span><span></span><span>6p</span><span></span><span>21h</span><span>Fechado</span></div>
+        <div class="pedidos-bar" onclick="event.stopPropagation(); window.open('https://www.pizzahut.com.br/', '_blank')">PEDIDOS</div>
+      </div>
+
+    </div> <!-- Fecha o <div class="grid"> das pizzarias -->
+
+    <!-- GRÁFICO DE DEMANDA - Aparece logo abaixo da lista completa -->
+    <div style="margin: 60px auto; padding: 20px; background: #1a1a1a; border-radius: 12px; max-width: 900px; box-shadow: 0 4px 20px rgba(0,0,0,0.7);">
+      <h2 style="text-align:center; color:#ff6b00; margin-bottom:10px;">Demanda Estimada de Pizzas - Bairro da Mooca</h2>
+      <h4 style="text-align:center; color:#ccc; margin-top:0;">(Fevereiro/2025 a Janeiro/2026)</h4>
+      
+      <canvas id="pizzaDemandChart" style="max-height:500px;"></canvas>
+
+      <div style="margin-top:15px; font-size:0.9em; color:#aaa; text-align:center; line-height:1.5;">
+        • 100% = demanda média mensal (~300 mil pizzas na região da Mooca)<br>
+        • Picos em laranja: fins de semana prolongados, feriados e jogos importantes<br>
+        • Valores em % (relativo à média) + estimativa absoluta aproximada
+        <div style="margin-top:8px; font-size:0.75em; color:#777;">
+          Fontes pesquisadas: Apubra (Associação Paulista de Pizzarias), iFood Insights 2025, Google Trends (buscas por "pizza" em São Paulo), calendários oficiais de feriados e Paulistão 2026.
+        </div>
+      </div>
+    </div>
+
+    <!-- Botão DOAÇÕES -->
+    <div style="text-align: center; margin: 60px 0 40px;">
+      <button onclick="navigator.clipboard.writeText('00020126490014BR.GOV.BCB.PIX0127lagarelli@g6connecti.com.br5204000053039865802BR5921Luiz Ricardo Agarelli6009Sao Paulo62070503***63046AA2'); alert('Código Pix copiado! Cole no seu app de pagamento.');" 
+              style="background: linear-gradient(135deg, #28a745, #39FF14); color: #000; font-weight: bold; font-size: 1.2em; padding: 18px 40px; border: none; border-radius: 50px; cursor: pointer; box-shadow: 0 8px 25px rgba(57,255,20,0.5); transition: all 0.3s;">
+        Apoie essa Idéia (Copiar Pix)
+      </button>
+      <p style="margin-top: 15px; font-size: 1.1em; color: #aaa;">
+        Doe qualquer Valor!
+      </p>
+    </div>
+
+    <footer>
+      Critério de Ordenação: Nota no Google Maps (decrescente – prioridade máxima). Desempate: Número de avaliações. Desempate secundário: Tradição, menções em rankings recentes. Feito com ❤️ e muita pizza • Mooca Pizza Meter
+    </footer>
+  </div>
+
+  <!-- Inclua a biblioteca Chart.js (coloque no final do body ou no head) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Script do gráfico -->
+  <script>
+    const ctx = document.getElementById('pizzaDemandChart').getContext('2d');
+
+    const data = {
+      labels: ['Fev/25', 'Mar/25', 'Abr/25', 'Mai/25', 'Jun/25', 'Jul/25', 'Ago/25', 'Set/25', 'Out/25', 'Nov/25', 'Dez/25', 'Jan/26'],
+      datasets: [{
+        label: 'Demanda relativa (%)',
+        data: [85, 160, 110, 95, 135, 70, 90, 105, 115, 125, 155, 140],
+        borderColor: '#ff6b00',
+        backgroundColor: 'rgba(255, 107, 0, 0.25)',
+        tension: 0.4,
+        fill: true,
+        pointBackgroundColor: '#fff',
+        pointBorderColor: '#ff6b00',
+        pointRadius: 6,
+        pointHoverRadius: 9
+      }]
+    };
+
+    const config = {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          title: {
+            display: true,
+            text: 'Demanda Estimada (média = 100% ≈ 300 mil pizzas/mês na região)',
+            color: '#eee',
+            font: { size: 16 }
+          },
+          legend: { labels: { color: '#ccc' } },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const perc = context.parsed.y;
+                let abs = Math.round(300 * (perc / 100));
+                return `${perc}% → ~${abs} mil pizzas/mês`;
+              }
+            }
+          }
+        },
+        scales: {
+          y: {
+            min: 0,
+            max: 180,
+            title: { display: true, text: 'Demanda (%)', color: '#eee' },
+            ticks: { color: '#aaa', callback: v => v + '%' }
+          },
+          x: { ticks: { color: '#aaa' } }
+        }
+      }
+    };
+
+    new Chart(ctx, config);
+  </script>
+</body>
+</html>
